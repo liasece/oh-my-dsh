@@ -1,0 +1,83 @@
+# OhMyDSH
+
+One DSH plugin that bundles three conveniences:
+
+- **Peak/valley routing** — swap the session's model seat to a per-window route inside configured hours, and to an off-peak route outside them.
+- **Prompt candidates** — after a turn ends, ask the current model for a few one-click next prompts.
+- **Input history** — with an empty draft, press ↑ to walk back through the messages you already sent, ↓ to walk forward.
+
+They used to be three separate plugins (`dsh-peak-valley-model`, `dsh-prompt-candidates`, `dsh-prompt-history`). The merge keeps one package, one mount and three settings pages, each with its own on/off switch.
+
+| Feature | What it does | Where | Switch |
+| --- | --- | --- | --- |
+| Peak/valley | Swaps the model seat per time window | Chip on the right of the composer; Settings → Peak/valley | Chip (per session) + the "enable" row on its page |
+| Prompt candidates | Suggests next prompts after a turn | Bar above the composer; Settings → Prompt candidates | The "enable" row on its page |
+| Input history | ↑ / ↓ recall sent messages; Esc dismisses, Enter sends | Keyboard only; Settings → Input history | The "enable" row on its page |
+
+## Install
+
+Install the bundle into the current profile from a DSH session:
+
+```json
+{ "action": "install_bundle", "target": "/path/to/oh-my-dsh" }
+```
+
+Replace `target` with the absolute path of your checkout. The package is plain ESM; there is no build step.
+
+A newly installed bundle is loaded on the next DSH start; the running app cannot hot-load a new bundle row. Config and feature switches never need a restart.
+
+## Configuration
+
+Three sections in the profile's `cordis.patch.yml`, one per feature. The fields exposed in Settings are `volatile` (writable live); the rest need a plugin reload.
+
+```yaml
+- id: oh-my-dsh
+  name: oh-my-dsh
+  config:
+    peakValley:
+      enabled: true
+      timeZone: Asia/Shanghai
+      peakWindows:
+        - { start: '09:00', end: '12:00', provider: deepseek-account, model: deepseek-flash }
+      offPeakRoute: { provider: deepseek-account, model: deepseek-flash }
+      sessions: { <session-id>: true }
+      lastToggle: { on: false, at: 0 }
+    candidates:
+      enabled: true
+      maxSuggestions: 2
+      historyMessages: 12
+    history:
+      enabled: true
+      limit: 100
+```
+
+| Section | Fields |
+| --- | --- |
+| `peakValley` | `enabled`, `timeZone`, `peakWindows[]`, `offPeakRoute`, `sessions`, `lastToggle` |
+| `candidates` | `enabled`, `maxSuggestions` (1–5), `historyMessages` (1–40), `maxOutputTokens`, `timeoutMs`, `provider`, `model`, `debug` |
+| `history` | `enabled`, `limit` (1–200, default 100) |
+
+## Migrating from the three plugins
+
+Every field maps one-to-one; it just moves under a section key. Replace the `peak-valley-model` row with `oh-my-dsh`, move its `config` under `peakValley:`, move the candidates config under `candidates:` and the history config under `history:`, then drop the three old packages from `dsh.profile.bundles` and the profile's `dependencies`. Restart DSH.
+
+Keep `lastToggle`: it records whether the last manual action was "on" or "off" and decides what a new session inherits.
+
+## Behavior notes
+
+- **Peak/valley** ships with both windows pointing at the same route as off-peak, so a fresh install switches nothing until you edit the two windows into your second route. It is per session and off by default; `lastToggle` only seeds newly created sessions. Routes are applied by rewriting the session's model seat (`sessionController.selectModel`), never by intercepting requests. A manual model change turns the session off (and records `lastToggle`). Alignment runs on mount, every 15s, at turn end and on switch change — never mid-turn. Subagent sessions are skipped.
+- **Candidates** only generate when the session sits on a finished turn, deduped by log length; Tab is consumed inside the composer card only, and nothing is written to the session log.
+- **Input history** only takes over ↑/↓ when the draft is empty (or the caret is on the first/last line of a multi-line draft). It replays the wire text of sent messages: `@[label](dsh-file:…)` references come back as text, images and attachments are not recalled.
+
+## Development
+
+```bash
+npm install
+npm test
+```
+
+`client.js` is the merged browser half; `index.js` plus `lib/` is the host half. Tests cover pure routing helpers, the host alignment logic with fakes, and the real client components under jsdom.
+
+## License
+
+MIT.

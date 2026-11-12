@@ -1,0 +1,83 @@
+{
+  "name": "oh-my-dsh",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "把峰谷动态、提示词候选、输入历史三个功能合到一个插件里，每个功能各有开关，设置沿用原来的字段。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "oh-my-dsh",
+    "peak-valley",
+    "prompt-candidates",
+    "prompt-history"
+  ],
+  "author": "liasece",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.2-rc.1 <0.3.0"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./period": "./lib/peak-valley/period.js",
+    "./state": "./lib/peak-valley/state.js",
+    "./candidates": "./lib/candidates/candidates.js",
+    "./history": "./lib/history/history.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-shortcuts",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-settings-general"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test --test-force-exit test/*.test.mjs",
+    "check": "node --check index.js && node --check client.js && node --check lib/shipped.js && node --check lib/remote.js && node --check lib/typert.js && node --check lib/service.js && node --check lib/peak-valley/index.js && node --check lib/candidates/index.js && node --check lib/history/index.js"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "3.18.5",
+    "jsdom": "^25.0.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^3.23.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liasece/oh-my-dsh.git"
+  },
+  "homepage": "https://github.com/liasece/oh-my-dsh#readme",
+  "bugs": {
+    "url": "https://github.com/liasece/oh-my-dsh/issues"
+  }
+}

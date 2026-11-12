@@ -1,0 +1,15 @@
+- insert:
+    - id: oh-my-dsh
+      name: 'oh-my-dsh'
+      config:
+        peakValley:
+          enabled: true
+        candidates:
+          enabled: true
+          maxSuggestions: 2
+          historyMessages: 12
+          maxOutputTokens: 1600
+          timeoutMs: 25000
+        history:
+          enabled: true
+          limit: 100
