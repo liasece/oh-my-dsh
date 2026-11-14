@@ -67,7 +67,7 @@ Keep `lastToggle`: it records whether the last manual action was "on" or "off" a
 
 - **Peak/valley** ships with both windows pointing at the same route as off-peak, so a fresh install switches nothing until you edit the two windows into your second route. It is per session and off by default; `lastToggle` only seeds newly created sessions. Routes are applied by rewriting the session's model seat (`sessionController.selectModel`), never by intercepting requests. A manual model change turns the session off (and records `lastToggle`). Alignment runs on mount, every 15s, at turn end and on switch change — never mid-turn. Subagent sessions are skipped.
 - **Candidates** only generate when the session sits on a finished turn, deduped by log length; Tab is consumed inside the composer card only, and nothing is written to the session log.
-- **Input history** only takes over ↑/↓ when the draft is empty (or the caret is on the first/last line of a multi-line draft). It replays the wire text of sent messages: `@[label](dsh-file:…)` references come back as text, images and attachments are not recalled.
+- **Input history** only takes over ↑/↓ when the draft is empty (or the caret is on the first/last line of a multi-line draft). It replays the wire text of messages you sent yourself; assistant messages, sub-agent `agent-message`s and framework-injected context never enter the list and do not use up its limit. `@[label](dsh-file:…)` references come back as text, images and attachments are not recalled. Reading the session log makes no model call, so recall costs no model quota; prompt candidates do make one call per finished turn and can be switched off.
 
 ## Development
 

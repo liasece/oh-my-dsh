@@ -2051,7 +2051,7 @@ window.__ModuleLoader__.load({
 
     const historyZh = {
       'settings.title': '输入历史',
-      'settings.intro': '草稿为空时按 ↑ 召回本会话上一条发送过的消息，继续按 ↑ 往前翻、按 ↓ 往后翻。召回只填进输入框，不会直接发送。',
+      'settings.intro': '草稿为空时按 ↑ 召回你自己在本会话发过的上一条消息，继续按 ↑ 往前翻、按 ↓ 往后翻。助手、子 Agent 与框架注入的内容不会进入历史；召回只填进输入框，不会直接发送。',
       'settings.enabled': '功能开关',
       'settings.enabledHint': '关掉后 ↑/↓ 恢复编辑器原本的行为，历史记录本身不受影响。',
       'settings.on': '已开启',
@@ -2066,7 +2066,7 @@ window.__ModuleLoader__.load({
     }
     const historyEn = {
       'settings.title': 'Prompt history',
-      'settings.intro': 'Press Up in an empty composer to bring back the last message sent in this session; keep pressing Up to go further back and Down to come forward. Recalled text only fills the draft, it is never sent.',
+      'settings.intro': 'Press Up in an empty composer to bring back the last message you sent in this session; keep pressing Up to go further back and Down to come forward. Assistant, sub-agent, and framework messages are not kept in this history, and recalled text only fills the draft, never sends it.',
       'settings.enabled': 'Feature switch',
       'settings.enabledHint': 'When off, Up/Down go back to the editor; the recorded history is unaffected.',
       'settings.on': 'On',
