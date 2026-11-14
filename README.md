@@ -20,7 +20,7 @@
 
 `target` 换成本机 checkout 的绝对路径。仓库是纯 ESM，不需要构建。
 
-或者直接从插件市场（如果这个仓库被收录）安装 `oh-my-dsh`。
+或者从自建插件索引 [liasece/dsh-plugins](https://github.com/liasece/dsh-plugins) 里安装 `oh-my-dsh`；索引按 commit SHA 记录版本，发布与回滚流程见[运维文档](docs/operations.md#升级发布与回滚)。
 
 新装的 bundle 需要**重启 DSH** 才会加载（运行中的应用不能热加载新的 bundle 行）。之后改配置、开关功能都不需要再重启。
 
@@ -56,7 +56,7 @@
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
 | `enabled` | `true` | 整个功能的总开关。关掉后既不对齐模型位，也不响应手动换模型。 |
-| `timeZone` | `Asia/Shanghai` | 判断「现在是不是峰时」用的时区。静态字段，改完要重载插件。 |
+| `timeZone` | `Asia/Shanghai` | 判断「现在是不是峰时」用的时区；设置页可改，保存即时生效。 |
 | `peakWindows` | 09:00–12:00、14:00–18:00 两段，路由同谷时 | 每段自带 `provider` / `model`。周末一律算谷时。默认两条路由相同，所以装好等于不切换，要到设置页把峰时那两段换成你的另一条路由。 |
 | `offPeakRoute` | `deepseek-account` / `deepseek-flash` | 时段之外（含周末）使用的路由，`{ provider, model }`。 |
 | `sessions` | `{}` | 按会话的开关状态。**默认不开**：新会话要自己打开。 |
@@ -73,8 +73,8 @@
 | `historyMessages` | `12` | 送给模型的最近消息条数，1–40；最近的用户消息一定会带上。 |
 | `maxOutputTokens` | `1600` | 候选请求的输出上限（推理模型的思考也算在内）。静态字段。 |
 | `timeoutMs` | `25000` | 一次候选请求的端到端时限。静态字段。 |
-| `provider` / `model` | 空 | 可选的路线覆盖；两者都填才生效，否则沿用会话当前模型。 |
-| `debug` | `false` | 把原始输出打到 Host 终端。 |
+| `provider` / `model` | 空 | 可选的路线覆盖；两者都填才生效，否则沿用会话当前模型。静态字段。 |
+| `debug` | `false` | 把原始输出打到 Host 终端。静态字段。 |
 
 ### `history`
 
@@ -147,7 +147,16 @@ npm test                   # node --test test/*.test.mjs
 | `client.js` | 浏览器半边：三个功能的槽位与合并后的 OhMyDSH 设置页 |
 | `cordis.patch.yml` | bundle 的安装行 |
 
-测试分三档：`period`/`state`/`history` 是纯函数，`peak-valley-host` 用替身跑宿主逻辑，`peak-valley-client`/`peak-valley-interaction`/`merge` 用 jsdom + React 18 真的渲染和点击。
+测试分三档：`period`/`state`/`history`/`candidates` 是纯函数，`peak-valley-host` 用替身跑宿主逻辑，`peak-valley-client`/`peak-valley-interaction`/`merge` 用 jsdom + React 18 真的渲染和点击。
+
+## 文档
+
+- [产品文档](docs/product.md)：三个功能为谁解决什么、能力边界、常见误解与产品历史。
+- [开发文档](docs/development.md)：Host / 浏览器两半边的分层、改动落点、宿主 API 约定与测试。
+- [运维文档](docs/operations.md)：安装卸载、版本兼容、设置迁移、发布回滚与排障。
+- [AGENTS.md](AGENTS.md)：给 agent 的文档入口与工作约定。
+
+文档按问题选读，不是使用插件的前置步骤。
 
 ## 许可
 
