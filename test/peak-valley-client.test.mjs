@@ -78,6 +78,8 @@ const sourceOf = (value) => ({ getSnapshot: () => value, subscribe: () => () => 
 /** 取组件：通过 apply 抓注册项。 */
 async function collectRegistrations(exports, { sessions, remote, configForms, locale } = {}) {
   const registered = new Map()
+  /** 按「槽位#id」另存一份，供候选/历史这种跨槽位复用 id 的页面取用。 */
+  const bySlot = new Map()
   const ctx = {
     effect: (factory) => {
       const disposer = factory()
@@ -109,12 +111,23 @@ async function collectRegistrations(exports, { sessions, remote, configForms, lo
         // 同一个 id 会出现在多个槽位（设置页与它的导航图标），测试只取第一次，
         // 也就是页面本身的注册项。
         if (!registered.has(options.id)) registered.set(options.id, { options, component })
+        // 候选与历史的设置页与输入框那一行共用 id，这里再按「槽位#id」存一份。
+        bySlot.set(`${options.name}#${options.id}`, { options, component })
         return () => {}
       },
     },
   }
   await exports.apply(ctx)
+  registered.bySlot = bySlot
   return registered
+}
+
+/** 从整页标记里截出某个功能板块，避免把别的板块的控件算进来。 */
+function blockOf(markup, key) {
+  const start = markup.indexOf(`data-feature="${key}"`)
+  assert.ok(start >= 0, `应有 ${key} 板块`)
+  const next = markup.indexOf('data-feature="', start + 1)
+  return markup.slice(start, next === -1 ? undefined : next)
 }
 
 test('client.js 注册两处入口，且 id 稳定', async () => {
@@ -127,9 +140,9 @@ test('client.js 注册两处入口，且 id 稳定', async () => {
   // 会话服务用于「开启的瞬间把模型位切过去」，不再用于表达开关状态。
   const registrations = await collectRegistrations(exports)
   assert.ok(registrations.has('oh-my-dsh.peak-valley-toggle'), '输入框右侧应有开关')
-  assert.ok(registrations.has('oh-my-dsh.peak-valley'), '设置里应有本插件一页')
+  assert.ok(registrations.has('oh-my-dsh'), '设置里应有插件唯一一页')
   assert.equal(registrations.get('oh-my-dsh.peak-valley-toggle').options.name, 'conversation.input.right')
-  assert.equal(registrations.get('oh-my-dsh.peak-valley').options.name, 'settings.section',
+  assert.equal(registrations.get('oh-my-dsh').options.name, 'settings.section',
     '应注册为顶层设置分区，与官方设置页同一方式')
 })
 
@@ -197,19 +210,97 @@ test('开关：渲染出轨道、圆钮与齿轮（不是裸按钮）', async ()
       t: (key) => key,
     }),
   )
-  assert.match(markup, /pvm-switchTrack/, '必须有开关轨道')
-  assert.match(markup, /pvm-switchThumb/, '必须有圆钮')
+  assert.match(markup, /omd-switchTrack/, '必须有开关轨道')
+  assert.match(markup, /omd-switchThumb/, '必须有圆钮')
   assert.match(markup, /pvm-gear/, '必须有设置齿轮')
   assert.doesNotMatch(markup, /pvm-chip/, '不该再有旧的胶囊类名')
+})
+
+test('一页设置里三个块各有一个胶囊功能开关，且是同一个控件', async () => {
+  // 三段共用一张表单：每个板块只读自己那一段。
+  const form = {
+    getSnapshot: () => ({
+      status: 'ready',
+      writable: true,
+      value: {
+        peakValley: {
+          enabled: { get: () => true },
+          sessions: { get: () => ({}) },
+          peakWindows: { get: () => [{ start: '09:00', end: '12:00', provider: 'p-peak', model: 'm-peak' }] },
+          timeZone: { get: () => 'Asia/Shanghai' },
+          offPeakRoute: { get: () => ({ provider: 'p-off', model: 'm-off' }) },
+        },
+        candidates: {
+          enabled: { get: () => true },
+          maxSuggestions: { get: () => 2 },
+          historyMessages: { get: () => 12 },
+        },
+        history: { enabled: { get: () => true }, limit: { get: () => 100 } },
+      },
+    }),
+    subscribe: () => () => {},
+    mutate: async () => true,
+  }
+  const exports = loadClient()
+  const registrations = await collectRegistrations(exports, { configForms: { get: () => form } })
+
+  const { component: Page, options } = registrations.bySlot.get('settings.section#oh-my-dsh')
+  const markup = renderToStaticMarkup(React.createElement(Page, { ...options.inject(), t: (key) => key }))
+  assert.equal((markup.match(/class="omd-switch"/g) ?? []).length, 3, '三个功能各有一个开关')
+  assert.equal((markup.match(/role="switch"/g) ?? []).length, 3, '每个开关都声明为 switch')
+  assert.equal((markup.match(/omd-switchTrack/g) ?? []).length, 3, '每个开关都有胶囊轨道')
+  assert.equal((markup.match(/omd-switchThumb/g) ?? []).length, 3, '每个开关都有圆钮')
+  assert.doesNotMatch(markup, /pvm-button[^>]*role="switch"/, '功能开关不该还是普通按钮')
+  for (const key of ['peakValley', 'candidates', 'history']) {
+    assert.match(markup, new RegExp(`data-feature="${key}"`), `应有 ${key} 板块`)
+  }
+  assert.equal((markup.match(/data-open="true"/g) ?? []).length, 3, '功能开着时板块展开')
+})
+
+test('功能关掉时板块折叠，板块头与开关仍在', async () => {
+  const form = {
+    getSnapshot: () => ({
+      status: 'ready',
+      writable: true,
+      value: {
+        peakValley: {
+          enabled: { get: () => true },
+          sessions: { get: () => ({}) },
+          peakWindows: { get: () => [] },
+          timeZone: { get: () => 'Asia/Shanghai' },
+          offPeakRoute: { get: () => ({ provider: 'p-off', model: 'm-off' }) },
+        },
+        candidates: { enabled: { get: () => false }, maxSuggestions: { get: () => 2 }, historyMessages: { get: () => 12 } },
+        history: { enabled: { get: () => true }, limit: { get: () => 100 } },
+      },
+    }),
+    subscribe: () => () => {},
+    mutate: async () => true,
+  }
+  const exports = loadClient()
+  const registrations = await collectRegistrations(exports, { configForms: { get: () => form } })
+  const { component: Page, options } = registrations.bySlot.get('settings.section#oh-my-dsh')
+  const markup = renderToStaticMarkup(React.createElement(Page, { ...options.inject(), t: (key) => key }))
+
+  const candidatesBlock = blockOf(markup, 'candidates')
+  assert.match(candidatesBlock, /data-open="false"/, '功能关闭的板块收起')
+  assert.match(candidatesBlock, /aria-hidden="true"/, '收起的内容不暴露给读屏')
+  assert.match(candidatesBlock, /inert=""/, '收起的内容不能聚焦')
+  assert.match(candidatesBlock, /role="switch"/, '收起后开关还在，能再打开')
+  assert.match(candidatesBlock, /settings.title/, '板块头仍显示标题')
+  assert.match(candidatesBlock, /settings.enabledHint/, '收起时说明关掉后会发生什么')
+
+  assert.match(blockOf(markup, 'peakValley'), /data-open="true"/, '别的板块不受影响')
 })
 
 test('设置页：时段表、窗口外路由、时区都可编辑', async () => {
   const exports = loadClient()
   const registrations = await collectRegistrations(exports, { configForms: { get: () => fakeSnapshot({ sessions: { s1: true } }) } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
-  const markup = renderToStaticMarkup(
+  const { component: Settings, options } = registrations.bySlot.get('settings.section#oh-my-dsh')
+  const page = renderToStaticMarkup(
     React.createElement(Settings, { ...options.inject(), t: (key) => key }),
   )
+  const markup = blockOf(page, 'peakValley')
   // 两段默认时段：每段 4 个下拉（起止 + provider + model），加窗口外 2 个、时区 1 个
   assert.equal((markup.match(/<select/g) ?? []).length, 2 * 4 + 2 + 1, '下拉数量应与时段表一致')
   assert.equal((markup.match(/<input/g) ?? []).length, 0, '设置页不应再有自由文本输入')
@@ -228,9 +319,10 @@ test('设置页：时段数量随配置变化', async () => {
     peakWindows: [{ start: '22:00', end: '23:00', provider: 'x', model: 'y' }],
   })
   const registrations = await collectRegistrations(exports, { configForms: { get: () => one } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
-  const markup = renderToStaticMarkup(
-    React.createElement(Settings, { ...options.inject(), t: (key) => key }),
+  const { component: Settings, options } = registrations.bySlot.get('settings.section#oh-my-dsh')
+  const markup = blockOf(
+    renderToStaticMarkup(React.createElement(Settings, { ...options.inject(), t: (key) => key })),
+    'peakValley',
   )
   assert.equal((markup.match(/<select/g) ?? []).length, 4 + 2 + 1, '一段时段 = 4 个下拉')
   assert.match(markup, /22:00/, '时段起点应回填')
@@ -258,6 +350,6 @@ test('拿不到宿主原语时仍能渲染（不让整个开关消失）', async
   const markup = renderToStaticMarkup(
     React.createElement(Chip, { ...options.inject('s1'), useConfig: (selector) => selector?.(fakeSnapshot({ sessions: { s1: true } }).getSnapshot()), t: (key) => key }),
   )
-  assert.match(markup, /pvm-switch/, '开关本体仍要渲染')
+  assert.match(markup, /omd-switch/, '开关本体仍要渲染')
   assert.match(markup, /svg/, '齿轮图标应有兜底实现')
 })

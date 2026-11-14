@@ -6,13 +6,13 @@ One DSH plugin that bundles three conveniences:
 - **Prompt candidates** — after a turn ends, ask the current model for a few one-click next prompts.
 - **Input history** — with an empty draft, press ↑ to walk back through the messages you already sent, ↓ to walk forward.
 
-They used to be three separate plugins (`dsh-peak-valley-model`, `dsh-prompt-candidates`, `dsh-prompt-history`). The merge keeps one package, one mount and three settings pages, each with its own on/off switch.
+They used to be three separate plugins (`dsh-peak-valley-model`, `dsh-prompt-candidates`, `dsh-prompt-history`). The merge keeps one package and one mount; all settings live on a single OhMyDSH page, one section per feature, each with its own on/off switch.
 
 | Feature | What it does | Where | Switch |
 | --- | --- | --- | --- |
-| Peak/valley | Swaps the model seat per time window | Chip on the right of the composer; Settings → Peak/valley | Chip (per session) + the "enable" row on its page |
-| Prompt candidates | Suggests next prompts after a turn | Bar above the composer; Settings → Prompt candidates | The "enable" row on its page |
-| Input history | ↑ / ↓ recall sent messages; Esc dismisses, Enter sends | Keyboard only; Settings → Input history | The "enable" row on its page |
+| Peak/valley | Swaps the model seat per time window | Chip on the right of the composer; Settings → OhMyDSH → Peak/valley | Chip (per session) + the section's capsule switch |
+| Prompt candidates | Suggests next prompts after a turn | Bar above the composer; Settings → OhMyDSH → Prompt candidates | The section's capsule switch |
+| Input history | ↑ / ↓ recall sent messages; Esc dismisses, Enter sends | Keyboard only; Settings → OhMyDSH → Input history | The section's capsule switch |
 
 ## Install
 

@@ -233,7 +233,7 @@ test('点开关（关着）→ 把本会话记入 sessions，不碰模型选择'
     t: (key) => registrations.dictionaries.get('oh-my-dsh.peak-valley').zh[key] ?? key,
   })
 
-  const button = ui.container.querySelector('button.pvm-switch')
+  const button = ui.container.querySelector('button.omd-switch')
   assert.ok(button !== null, '应渲染出开关')
   assert.equal(button.getAttribute('data-on'), 'false')
 
@@ -276,7 +276,7 @@ test('打开开关不即时改模型位（避免在轮次中途换路由）', as
   })
 
   await ui.act(async () => {
-    ui.container.querySelector('button.pvm-switch').dispatchEvent(new ui.dom.window.MouseEvent('click', { bubbles: true }))
+    ui.container.querySelector('button.omd-switch').dispatchEvent(new ui.dom.window.MouseEvent('click', { bubbles: true }))
   })
 
   assert.deepEqual(form.writes[0].ops[0], { op: 'set', path: ['peakValley', 'sessions'], value: { s1: true } }, '写开关状态')
@@ -299,7 +299,7 @@ test('点开关（开着）→ 把这个会话从 sessions 里删掉', async () 
     t: (key) => registrations.dictionaries.get('oh-my-dsh.peak-valley').zh[key] ?? key,
   })
 
-  const button = ui.container.querySelector('button.pvm-switch')
+  const button = ui.container.querySelector('button.omd-switch')
   assert.equal(button.getAttribute('data-on'), 'true', '开着时应显示为开')
 
   await ui.act(async () => {
@@ -327,16 +327,16 @@ test('写开关失败时开关回到可用状态，并把原因留在 title 上'
     t: (key) => registrations.dictionaries.get('oh-my-dsh.peak-valley').zh[key] ?? key,
   })
 
-  const button = ui.container.querySelector('button.pvm-switch')
+  const button = ui.container.querySelector('button.omd-switch')
   await ui.act(async () => {
     button.dispatchEvent(new ui.dom.window.MouseEvent('click', { bubbles: true }))
   })
 
-  const after = ui.container.querySelector('button.pvm-switch')
+  const after = ui.container.querySelector('button.omd-switch')
   assert.equal(after.disabled, false, '失败后必须能再点，不能卡在 disabled')
   assert.match(String(after.getAttribute('title')), /宿主拒绝了写入/)
   // 失败必须看得见，不能只藏在 title 里。
-  const label = after.querySelector('.pvm-switchLabel')
+  const label = after.querySelector('.omd-switchLabel')
   assert.equal(label.getAttribute('data-error'), 'true')
   assert.match(label.textContent, /开关失败/)
 
@@ -382,7 +382,7 @@ test('设置页：没有任何保存按钮，改一下就直接写入', async ()
   const form = fakeForm({ sessions: { s1: true } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -428,7 +428,7 @@ test('设置页：换 provider 时模型自动落到该 provider 的第一个模
   const form = fakeForm({ sessions: { s1: true } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -456,7 +456,7 @@ test('设置页：配置里不在目录中的值仍保留为选项（不擅自�
   })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -476,7 +476,7 @@ test('设置页：可以增删时段', async () => {
   const form = fakeForm({ sessions: { s1: true } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -509,7 +509,7 @@ test('设置页：可一键清空按会话覆盖', async () => {
   const form = fakeForm({ enabled: true, sessions: { s1: false } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -546,7 +546,7 @@ test('设置页：路由为空时不写入，只提示（目录为空也不能�
       },
     },
   })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -570,7 +570,7 @@ test('设置页：增删时段立即写入', async () => {
   const form = fakeForm({ sessions: { s1: true } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   const ui = await mount(Settings, {
@@ -602,7 +602,7 @@ test('设置页：写入落地前的配置推送不会把刚改的值冲掉', as
   const form = fakeForm({ sessions: { s1: true } })
   const exports = loadClient()
   const registrations = await collect(exports, { configForms: { get: () => form } })
-  const { component: Settings, options } = registrations.get('oh-my-dsh.peak-valley')
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
   const injected = options.inject()
 
   // 让写入悬停，模拟「已改、尚未落库」的窗口期。
@@ -628,5 +628,78 @@ test('设置页：写入落地前的配置推送不会把刚改的值冲掉', as
   assert.equal(ui.container.querySelectorAll('select.pvm-select')[0].value, '10:00', '用户刚选的值应留在界面上')
 
   await act(async () => { release() })
+  await ui.unmount()
+})
+
+/** 三个功能段都在、写后会推送的表单替身，用来验证板块的展开/收起。 */
+function fakePageForm({ enabled = { peakValley: true, candidates: true, history: true } } = {}) {
+  const state = { ...enabled }
+  const listeners = new Set()
+  const writes = []
+  const snapshot = () => ({
+    status: 'ready',
+    writable: true,
+    revision: 1,
+    value: {
+      peakValley: {
+        enabled: { get: () => state.peakValley },
+        sessions: { get: () => ({}) },
+        peakWindows: { get: () => [{ start: '09:00', end: '12:00', provider: 'p-peak', model: 'm-peak' }] },
+        timeZone: { get: () => 'Asia/Shanghai' },
+        offPeakRoute: { get: () => ({ provider: 'p-off', model: 'm-off' }) },
+      },
+      candidates: {
+        enabled: { get: () => state.candidates },
+        maxSuggestions: { get: () => 2 },
+        historyMessages: { get: () => 12 },
+      },
+      history: { enabled: { get: () => state.history }, limit: { get: () => 100 } },
+    },
+  })
+  return {
+    writes,
+    getSnapshot: snapshot,
+    subscribe: (listener) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+    mutate: async (ops) => {
+      writes.push(ops)
+      for (const op of ops) {
+        if (op.op !== 'set') continue
+        const [section, field] = op.path
+        if (field !== 'enabled') continue
+        if (section === 'peakValley' || section === 'candidates' || section === 'history') state[section] = op.value
+      }
+      for (const listener of listeners) listener()
+      return true
+    },
+  }
+}
+
+test('设置页：关掉一个功能时收起它的板块，再点开关就展开', async () => {
+  const form = fakePageForm({ enabled: { peakValley: true, candidates: false, history: true } })
+  const exports = loadClient()
+  const registrations = await collect(exports, { configForms: { get: () => form } })
+  const { component: Settings, options } = registrations.get('oh-my-dsh')
+
+  const ui = await mount(Settings, options.inject())
+  const block = key => ui.container.querySelector(`[data-feature="${key}"]`)
+  const body = key => ui.container.querySelector(`[data-feature="${key}"] .omd-blockBody`)
+
+  assert.equal(block('candidates').getAttribute('data-open'), 'false', '关掉的功能板块是收起的')
+  assert.equal(body('candidates').getAttribute('aria-hidden'), 'true', '收起的内容不暴露给读屏')
+  assert.equal(block('peakValley').getAttribute('data-open'), 'true', '开着的板块不受影响')
+
+  const toggle = block('candidates').querySelector('button.omd-switch')
+  assert.equal(toggle.getAttribute('aria-checked'), 'false')
+  await ui.act(async () => {
+    toggle.dispatchEvent(new ui.dom.window.MouseEvent('click', { bubbles: true }))
+  })
+
+  assert.deepEqual(form.writes[0], [{ op: 'set', path: ['candidates', 'enabled'], value: true }])
+  assert.equal(block('candidates').getAttribute('data-open'), 'true', '打开后板块展开')
+  assert.equal(body('candidates').getAttribute('aria-hidden'), null, '展开后内容重新可读')
+
   await ui.unmount()
 })

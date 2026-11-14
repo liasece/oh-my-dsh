@@ -560,21 +560,27 @@ window.__ModuleLoader__.load({
     const CSS = `
 /* 整组：开关 + 齿轮，作为输入框右侧的一个紧凑控件。 */
 .pvm-root{display:inline-flex;align-items:center;gap:2px;position:relative;flex:none}
-/* 开关本体：轨道 + 圆钮 + 文案，形如宿主自己的 switch。 */
-.pvm-switch{box-sizing:border-box;border:none;outline:none;background:0 0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 8px 0 6px;border-radius:var(--dsw-radius-md);color:var(--dsw-alias-label-secondary);white-space:nowrap;flex:none}
-.pvm-switch:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
-.pvm-switch:focus-visible{box-shadow:0 0 0 2px var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}
-.pvm-switch:disabled{opacity:.55;cursor:default}
-.pvm-switch[data-on="true"]{color:var(--dsw-alias-label-primary)}
-.pvm-switchTrack{position:relative;display:inline-block;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-state-idle-primary);transition:background .15s ease}
-.pvm-switch[data-on="true"] .pvm-switchTrack{background:var(--dsw-alias-state-success-primary)}
-.pvm-switch[data-busy="true"] .pvm-switchTrack{background:var(--dsw-alias-state-warn-primary)}
-.pvm-switchThumb{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-bg-base);transition:transform .15s ease}
-.pvm-switch[data-on="true"] .pvm-switchThumb{transform:translateX(11px)}
-.pvm-switchText{display:inline-flex;align-items:baseline;gap:5px;min-width:0}
-.pvm-switchLabel{font-size:13px;line-height:20px}
+/*
+ * 功能开关：胶囊轨道 + 圆钮 + 文案。
+ *
+ * 设置页板块的「功能开关」与输入框右侧的峰谷开关共用这一套形状，所以类名
+ * 用插件级前缀 omd-，不随某个功能走。轨道宽度与宿主自己的 switch 同构，
+ * 只是缩小到 26×15 以适配 36px 的输入框工具条。
+ */
+.omd-switch{box-sizing:border-box;border:none;outline:none;background:0 0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 8px 0 6px;border-radius:var(--dsw-radius-md);color:var(--dsw-alias-label-secondary);white-space:nowrap;flex:none}
+.omd-switch:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
+.omd-switch:focus-visible{box-shadow:0 0 0 2px var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}
+.omd-switch:disabled{opacity:.55;cursor:default}
+.omd-switch[data-on="true"]{color:var(--dsw-alias-label-primary)}
+.omd-switchTrack{position:relative;display:inline-block;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-state-idle-primary);transition:background .15s ease}
+.omd-switch[data-on="true"] .omd-switchTrack{background:var(--dsw-alias-state-success-primary)}
+.omd-switch[data-busy="true"] .omd-switchTrack{background:var(--dsw-alias-state-warn-primary)}
+.omd-switchThumb{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-bg-base);transition:transform .15s ease}
+.omd-switch[data-on="true"] .omd-switchThumb{transform:translateX(11px)}
+.omd-switchText{display:inline-flex;align-items:baseline;gap:5px;min-width:0}
+.omd-switchLabel{font-size:13px;line-height:20px}
+.omd-switchLabel[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 .pvm-period{color:var(--dsw-alias-label-caption);font-size:12px}
-.pvm-switchLabel[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 /* 设置齿轮：与开关同高的图标按钮。 */
 .pvm-gear{box-sizing:border-box;border:none;outline:none;background:0 0;cursor:pointer;flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:var(--dsw-radius-sm);color:var(--dsw-alias-label-caption)}
 .pvm-gear:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
@@ -622,7 +628,6 @@ window.__ModuleLoader__.load({
 .pvm-button{box-sizing:border-box;border:.5px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);height:32px;color:var(--dsw-alias-label-primary);font:inherit;cursor:pointer;background:0 0;align-items:center;padding:0 14px;font-size:13px;line-height:20px;display:inline-flex}
 .pvm-button:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
 .pvm-button:disabled{opacity:.4;cursor:default}
-.pvm-button[data-on="true"]{border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary)}
 .pvm-linkButton{border:none;background:0 0;font:inherit;color:var(--dsw-alias-state-error-primary);cursor:pointer;margin-left:auto;padding:0 2px;font-size:12px;line-height:18px}
 .pvm-linkButton:hover:not(:disabled){text-decoration:underline}
 .pvm-linkButton:disabled{opacity:.4;cursor:default}
@@ -658,7 +663,7 @@ window.__ModuleLoader__.load({
      */
     function installStyles() {
       if (typeof document === 'undefined') return
-      const tagId = 'oh-my-dsh/peak-valley.css'
+      const tagId = 'oh-my-dsh/client.css'
       if (document.querySelector(`style[data-plugin-css=${JSON.stringify(tagId)}]`) !== null) return
       const tag = document.createElement('style')
       tag.dataset.plugin = PACKAGE
@@ -668,6 +673,50 @@ window.__ModuleLoader__.load({
     }
 
     installStyles()
+
+    /**
+     * 胶囊开关：一条圆角轨道，里面一枚圆钮，右侧跟一句状态文案。
+     *
+     * 设置页板块的「功能开关」与输入框右侧的峰谷开关都用它，保证同一控件在
+     * 两个位置看起来是同一个东西。文案由调用方给（设置页是「已开启／已关闭」，
+     * 峰谷在文案后面再挂一段时段）。
+     *
+     * @param {object} props
+     * @param {boolean} props.on 当前是否打开。
+     * @param {string} props.label 文案。
+     * @param {() => void} props.onClick 点击切换。
+     * @param {string} [props.title] 悬停说明。
+     * @param {string} [props.ariaLabel] 无障碍名称；有可见文案时可不传。
+     * @param {boolean} [props.disabled] 不可点时置灰。
+     * @param {boolean} [props.busy] 写入中：轨道转黄、文案换成「切换中」。
+     * @param {boolean} [props.error] 出错：文案用错误色。
+     * @param {import('react').ReactNode} [props.extra] 文案右侧的补充信息。
+     */
+    function CapsuleSwitch(props) {
+      const { on, label, onClick, title, ariaLabel, disabled, busy, error, extra } = props
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: 'omd-switch',
+          role: 'switch',
+          'aria-checked': on ? 'true' : 'false',
+          'data-on': on ? 'true' : 'false',
+          ...(busy ? { 'data-busy': 'true' } : {}),
+          disabled,
+          onClick,
+          ...(title === undefined ? {} : { title }),
+          ...(ariaLabel === undefined ? {} : { 'aria-label': ariaLabel }),
+        },
+        h('span', { className: 'omd-switchTrack', 'aria-hidden': true }, h('span', { className: 'omd-switchThumb' })),
+        h(
+          'span',
+          { className: 'omd-switchText' },
+          h('span', { className: 'omd-switchLabel', ...(error ? { 'data-error': 'true' } : {}) }, label),
+          extra ?? null,
+        ),
+      )
+    }
 
     function registerPeakValley(ctx) {
       ctx.effect(() => ctx.locale.register(PEAK_VALLEY_NS, { zh: peakValleyZh, en: peakValleyEn }), 'oh-my-dsh: peak-valley dictionaries')
@@ -834,30 +883,9 @@ window.__ModuleLoader__.load({
         ),
       )
 
-      // -----------------------------------------------------------------
-      // 设置界面：顶层 settings.section，与官方各设置页同一注册方式
-      // -----------------------------------------------------------------
-      ctx.slots.inject('settings.section', () =>
-        ctx.slots.register(
-          {
-            name: 'settings.section',
-            id: 'oh-my-dsh.peak-valley',
-            order: 35,
-            label: () => t('title'),
-            locale: PEAK_VALLEY_NS,
-            inject: settingsActions,
-          },
-          PeakValleySettings,
-        ),
-      )
-
-      // 设置导航图标：与另外两页一致的注册方式。
-      ctx.slots.inject('settings.section.icon', () =>
-        ctx.slots.register(
-          { name: 'settings.section.icon', id: 'oh-my-dsh.peak-valley', order: 35 },
-          PeakValleyIcon,
-        ),
-      )
+      // 设置页只有一个（见 registerUi）：这里只交出本功能那一段的渲染入口，
+      // 由合并页按板块摆放。
+      return { t, Settings: PeakValleySettings, actions: settingsActions }
     }
 
     /**
@@ -936,39 +964,24 @@ window.__ModuleLoader__.load({
         ? `${t('chipDisable')}\n${route.provider} / ${route.model}`
         : t('chipEnable'))
 
-      // 开关本体：一个真正的 switch 控件。
-      const toggle = h(
-        'button',
-        {
-          type: 'button',
-          className: 'pvm-switch',
-          role: 'switch',
-          'aria-checked': on,
-          'data-on': on ? 'true' : 'false',
-          'data-busy': busy ? 'true' : 'false',
-          disabled: busy,
-          onClick,
-          title,
-          'aria-label': `${t('title')}：${on ? t('stateOn') : t('stateOff')}`,
-        },
-        h('span', { className: 'pvm-switchTrack', 'aria-hidden': true }, h('span', { className: 'pvm-switchThumb' })),
-        h(
-          'span',
-          { className: 'pvm-switchText' },
-          h(
+      // 开关本体：与设置页的「功能开关」同一个胶囊控件。
+      const toggle = h(CapsuleSwitch, {
+        on,
+        busy,
+        disabled: busy,
+        label: busy ? t('chipBusy') : error !== null ? t('chipFailedShort') : label,
+        error: error !== null,
+        title,
+        ariaLabel: `${t('title')}：${on ? t('stateOn') : t('stateOff')}`,
+        onClick,
+        extra: on && !busy
+          ? h(
             'span',
-            { className: 'pvm-switchLabel', 'data-error': error !== null ? 'true' : 'false' },
-            busy ? t('chipBusy') : error !== null ? t('chipFailedShort') : label,
-          ),
-          on && !busy
-            ? h(
-              'span',
-              { className: 'pvm-period' },
-              hit === undefined ? t('chipOutside') : `${formatClock(hit.start)}-${formatClock(hit.end)}`,
-            )
-            : null,
-        ),
-      )
+            { className: 'pvm-period' },
+            hit === undefined ? t('chipOutside') : `${formatClock(hit.start)}-${formatClock(hit.end)}`,
+          )
+          : null,
+      })
 
       // 设置入口：用宿主自己的设置图标，点开同一份设置面板。
       const gear = h(
@@ -1065,19 +1078,6 @@ window.__ModuleLoader__.load({
       )
     }
 
-    /** 设置导航图标：一峰一谷，表示按时段切换。 */
-    function PeakValleyIcon(props) {
-      const size = typeof props.size === 'number' ? props.size : 16
-      return h('svg', { viewBox: '0 0 16 16', width: size, height: size, fill: 'none', 'aria-hidden': true },
-        h('path', {
-          d: 'M2 11.5 6 6l3 4 1.6-2 3.4 3.5',
-          stroke: 'currentColor',
-          strokeWidth: 1.4,
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-        }))
-    }
-
     /** 把一份配置快照转成表单草稿。 */
     function draftOf(state) {
       const route = (value) => ({ provider: value?.provider ?? '', model: value?.model ?? '' })
@@ -1094,7 +1094,7 @@ window.__ModuleLoader__.load({
     }
 
     /** 设置页：默认开关 + 时段表（时间 + 模型）+ 窗口外路由 + 时区 + 覆盖清理。 */
-    function PeakValleySettings({ form, readState, setEnabled, setFeatureEnabled, saveRoutes, clearSessions, loadCatalog, t, compact = false }) {
+    function PeakValleySettings({ form, readState, setEnabled, setFeatureEnabled, saveRoutes, clearSessions, loadCatalog, t, compact = false, embedded = false }) {
       const [state, setState] = React.useState(() => readState())
       const [draft, setDraft] = React.useState(() => draftOf(readState()))
       const [busy, setBusy] = React.useState(false)
@@ -1403,11 +1403,14 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'pvm-section' },
-        compact ? null : h('h2', { className: 'pvm-heading' }, t('title')),
+        // 独立的设置页（齿轮浮层）自带标题与说明；并入合并页时标题和开关
+        // 由板块头负责，这里从简介开始画。
+        compact || embedded ? null : h('h2', { className: 'pvm-heading' }, t('title')),
         compact ? null : h('p', { className: 'pvm-intro' }, t('description')),
 
         // 功能开关：关掉后宿主空转，界面上的开关与会话覆盖都随之失效。
-        h(
+        // 合并页把开关放在板块头（收起时也够得着），这里就不重复画了。
+        embedded ? null : h(
           'div',
           { className: 'pvm-row' },
           h(
@@ -1416,19 +1419,13 @@ window.__ModuleLoader__.load({
             h('div', { className: 'pvm-rowTitle' }, t('featureLabel')),
             h('div', { className: 'pvm-rowHint' }, t('featureHint')),
           ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'pvm-button',
-              role: 'switch',
-              'aria-checked': state.enabled ? 'true' : 'false',
-              'data-on': state.enabled ? 'true' : 'false',
-              disabled: !writable || busy,
-              onClick: () => run(() => setFeatureEnabled(!state.enabled), t('notConfigurable')),
-            },
-            state.enabled ? t('featureOn') : t('featureOff'),
-          ),
+          h(CapsuleSwitch, {
+            on: state.enabled,
+            disabled: !writable || busy,
+            label: state.enabled ? t('featureOn') : t('featureOff'),
+            ariaLabel: t('featureLabel'),
+            onClick: () => run(() => setFeatureEnabled(!state.enabled), t('notConfigurable')),
+          }),
         ),
 
         // 说明性行：开关是按会话的，这里没有「全局默认」。
@@ -1622,8 +1619,26 @@ window.__ModuleLoader__.load({
 /* 设置页：与官方设置页同一套排版（标题、说明、分隔行、右侧控件）。 */
 .omd-set{box-sizing:border-box;max-width:720px;display:flex;flex-direction:column;gap:12px;
   color:var(--dsw-alias-label-primary)}
-.omd-setHeading{margin:0;font-size:18px;font-weight:600;line-height:26px}
 .omd-setIntro{margin:0;font-size:13px;line-height:20px;color:var(--dsw-alias-label-tertiary)}
+/* 合并后的 OhMyDSH 设置页：一个标题 + 每个功能一个可折叠板块。 */
+.omd-page{box-sizing:border-box;max-width:720px;display:flex;flex-direction:column;gap:14px;
+  color:var(--dsw-alias-label-primary)}
+.omd-pageTitle{margin:0;font-size:18px;font-weight:600;line-height:26px}
+.omd-pageIntro{margin:0;font-size:13px;line-height:20px;color:var(--dsw-alias-label-tertiary)}
+.omd-block{box-sizing:border-box;border:.5px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg);
+  background:var(--dsw-alias-bg-layer-1);overflow:hidden}
+.omd-blockHead{display:flex;align-items:center;gap:16px;padding:12px 16px}
+.omd-blockText{display:flex;flex-direction:column;flex:1;gap:3px;min-width:0}
+.omd-blockTitle{font-size:14px;font-weight:600;line-height:22px}
+.omd-blockHint{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}
+.omd-blockError{font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary)}
+/* 关掉的功能只留板块头（开关还在），正文用 grid 行高折叠，展开/收起都有过渡。 */
+.omd-blockBody{display:grid;grid-template-rows:1fr;transition:grid-template-rows .2s ease}
+.omd-block[data-open="false"] .omd-blockBody{grid-template-rows:0fr}
+.omd-blockClip{min-height:0;overflow:hidden}
+.omd-blockContent{padding:0 16px 6px}
+.omd-blockContent .omd-setRow:last-child,.omd-blockContent .pvm-row:last-child{border-bottom:0}
+@media (prefers-reduced-motion:reduce){.omd-blockBody{transition:none}}
 .omd-setRow{display:flex;align-items:center;gap:16px;padding:14px 0;
   border-bottom:.5px solid var(--dsw-alias-border-l2)}
 .omd-setText{display:flex;flex-direction:column;flex:1;gap:3px;min-width:0}
@@ -1645,11 +1660,7 @@ window.__ModuleLoader__.load({
 .omd-setSaved{color:var(--dsw-alias-state-success-primary)}
 .omd-setError{color:var(--dsw-alias-state-error-primary)}
 .omd-setNote{color:var(--dsw-alias-label-tertiary)}
-.omd-switch{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 12px;font:inherit;font-size:13px;
-  line-height:20px;color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1);
-  border:.5px solid var(--dsw-alias-border-l4);border-radius:999px;cursor:pointer}
-.omd-switch[data-on="true"]{border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary)}
-.omd-switch:disabled{opacity:.55;cursor:default}
+/* 功能开关（.omd-switch）是插件级共用控件，样式在模块顶层的 CSS 里，板块开关与峰谷开关同一份。 */
 .omd-srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}`
 
     function CloseIcon() {
@@ -1859,7 +1870,6 @@ window.__ModuleLoader__.load({
         return {
           status: snapshot?.status ?? 'missing',
           writable: snapshot?.status === 'ready' && snapshot?.writable === true,
-          enabled: value.enabled !== false,
           maxSuggestions: pick('maxSuggestions'),
           historyMessages: pick('historyMessages'),
         }
@@ -1939,23 +1949,9 @@ window.__ModuleLoader__.load({
         }
 
         const disabled = !view.writable || busy
+        // 标题与功能开关由合并页的板块头负责，这里只画这一段的设置内容。
         return h('section', { className: 'omd-set', 'data-dsh-prompt-candidates-settings': true },
-          h('style', null, STYLE),
-          h('h2', { className: 'omd-setHeading' }, tr('settings.title')),
           h('p', { className: 'omd-setIntro' }, tr('settings.intro')),
-          settingsRow(
-            tr('settings.enabled'),
-            tr('settings.enabledHint'),
-            h('button', {
-              type: 'button',
-              className: 'omd-switch',
-              role: 'switch',
-              'aria-checked': view.enabled ? 'true' : 'false',
-              'data-on': view.enabled ? 'true' : 'false',
-              disabled,
-              onClick: () => write('enabled', !view.enabled),
-            }, view.enabled ? tr('settings.on') : tr('settings.off')),
-          ),
           settingsRow(
             tr('settings.maxSuggestions'),
             tr('settings.maxSuggestionsHint'),
@@ -2000,19 +1996,6 @@ window.__ModuleLoader__.load({
           saved && error === null ? h('p', { className: 'omd-setMsg omd-setSaved' }, tr('settings.saved')) : null,
         )
       }
-
-      /** 设置导航图标：三条越来越短的横线，表示候选列表。 */
-      function SettingsIcon(props) {
-        const size = typeof props.size === 'number' ? props.size : 16
-        return h('svg', { viewBox: '0 0 16 16', width: size, height: size, fill: 'none', 'aria-hidden': true },
-          h('path', {
-            d: 'M3 4.5h10M3 8h6.5M3 11.5h4',
-            stroke: 'currentColor',
-            strokeWidth: 1.4,
-            strokeLinecap: 'round',
-          }))
-      }
-
       ctx.slots.inject(DOCK_SLOT, () => ctx.slots.register({
         name: DOCK_SLOT,
         id: 'oh-my-dsh.candidates',
@@ -2020,20 +2003,8 @@ window.__ModuleLoader__.load({
         locale: CANDIDATES_NS,
         inject: () => ({ configForm: configFormOf(ctx) }),
       }, CandidateRow))
-      // 顶层设置页与内置各页同一注册方式：导航里出现「输入框候选」。
-      ctx.slots.inject('settings.section', () => ctx.slots.register({
-        name: 'settings.section',
-        id: 'oh-my-dsh.candidates',
-        order: 40,
-        locale: CANDIDATES_NS,
-        label: () => fallback('settings.title'),
-        inject: () => ({ getForm: configForm }),
-      }, CandidateSettings))
-      ctx.slots.inject('settings.section.icon', () => ctx.slots.register({
-        name: 'settings.section.icon',
-        id: 'oh-my-dsh.candidates',
-        order: 40,
-      }, SettingsIcon))
+      // 设置页由 registerUi 统一注册；这里只交出本功能的设置内容。
+      return { t: fallback, Settings: CandidateSettings }
     }
 
 
@@ -2323,7 +2294,6 @@ window.__ModuleLoader__.load({
         return {
           status,
           writable: status === 'ready' && snapshot?.writable === true,
-          enabled: section.enabled !== false,
           limit: Number.isInteger(limit) && limit >= LIMIT_MIN && limit <= LIMIT_MAX ? limit : DEFAULT_LIMIT,
         }
       }
@@ -2390,25 +2360,9 @@ window.__ModuleLoader__.load({
         }
 
         const disabled = !view.writable || busy
+        // 标题与功能开关由合并页的板块头负责，这里只画这一段的设置内容。
         return h('section', { className: 'omd-set', 'data-oh-my-dsh-history-settings': true },
-          // 与「输入框候选」设置页共用同一份样式表。
-          h('style', null, STYLE),
-          h('h2', { className: 'omd-setHeading' }, tr('settings.title')),
           h('p', { className: 'omd-setIntro' }, tr('settings.intro')),
-          h('div', { className: 'omd-setRow' },
-            h('div', { className: 'omd-setText' },
-              h('div', { className: 'omd-setTitle' }, tr('settings.enabled')),
-              h('div', { className: 'omd-setHint' }, tr('settings.enabledHint'))),
-            h('button', {
-              type: 'button',
-              className: 'omd-switch',
-              role: 'switch',
-              'aria-checked': view.enabled ? 'true' : 'false',
-              'data-on': view.enabled ? 'true' : 'false',
-              disabled,
-              onClick: () => write({ enabled: !view.enabled }),
-            }, view.enabled ? tr('settings.on') : tr('settings.off')),
-          ),
           h('div', { className: 'omd-setRow' },
             h('div', { className: 'omd-setText' },
               h('div', { className: 'omd-setTitle' }, tr('settings.limit')),
@@ -2438,45 +2392,171 @@ window.__ModuleLoader__.load({
           saved && error === null ? h('p', { className: 'omd-setMsg omd-setSaved' }, tr('settings.saved')) : null,
         )
       }
+      // 设置页由 registerUi 统一注册；这里只交出本功能的设置内容。
+      return { t: fallback, Settings: HistorySettings }
+    }
 
-      /** 设置导航图标：一个向上回卷的箭头，表示往回翻。 */
-      function HistoryIcon(props) {
-        const size = typeof props.size === 'number' ? props.size : 16
-        return h('svg', { viewBox: '0 0 16 16', width: size, height: size, fill: 'none', 'aria-hidden': true },
-          h('path', {
-            d: 'M8 12.5V3.5M4.5 7 8 3.5 11.5 7',
-            stroke: 'currentColor',
-            strokeWidth: 1.4,
-            strokeLinecap: 'round',
-            strokeLinejoin: 'round',
-          }))
+    //#region 合并后的设置页
+    const PAGE_NS = 'oh-my-dsh.page'
+    const pageZh = {
+      title: 'OhMyDSH',
+      intro: '峰谷动态、提示词候选、输入历史三个功能共用这一页。关掉某个功能，它的设置会折叠收起；重新打开即恢复。',
+      readOnly: '当前部署没有开放配置写入，这里只显示当前值。',
+    }
+    const pageEn = {
+      title: 'OhMyDSH',
+      intro: 'Peak/Valley, prompt candidates, and input history share this page. Turning a feature off folds its settings away; turning it back on restores them.',
+      readOnly: 'This deployment exposes no configuration writes; current values are read-only here.',
+    }
+
+    /** 设置导航图标：一峰一谷加一点火花，沿用插件的品牌形状。 */
+    function OhMyDshIcon(props) {
+      const size = typeof props.size === 'number' ? props.size : 16
+      return h('svg', { viewBox: '0 0 16 16', width: size, height: size, fill: 'none', 'aria-hidden': true },
+        h('path', {
+          d: 'M1.8 12 5.4 6.2 8.2 10 10.2 7 14.2 12',
+          stroke: 'currentColor',
+          strokeWidth: 1.4,
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+        }),
+        h('circle', { cx: 12.2, cy: 4, r: 1.4, fill: 'currentColor' }))
+    }
+
+    /**
+     * 唯一的设置页：三个功能各占一个板块。
+     *
+     * 板块头就是功能开关；功能关掉时正文折叠（开关仍留在头上，随时能再打开）。
+     * 正文保持挂载、用 grid 行高做过渡，所以收起再展开不会丢草稿。
+     */
+    function OhMyDshSettings({ getForm, peak, candidates, history, t }) {
+      const form = typeof getForm === 'function' ? getForm() : undefined
+      const snapshot = form?.getSnapshot?.()
+      const writable = snapshot?.status === 'ready' && snapshot?.writable === true
+      const peakOn = useSectionEnabled(form, 'peakValley')
+      const candidatesOn = useSectionEnabled(form, 'candidates')
+      const historyOn = useSectionEnabled(form, 'history')
+      const [pending, setPending] = React.useState(null)
+      const [failure, setFailure] = React.useState(null)
+
+      const blocks = [
+        {
+          key: 'peakValley',
+          on: peakOn,
+          title: peak.t('title'),
+          offHint: peak.t('featureHint'),
+          labelOn: peak.t('featureOn'),
+          labelOff: peak.t('featureOff'),
+          notWritable: peak.t('notConfigurable'),
+          saveFailed: error => format(peak.t('saveFailed'), { error }),
+          body: h(peak.Settings, { ...peak.actions(), t: peak.t, embedded: true }),
+        },
+        {
+          key: 'candidates',
+          on: candidatesOn,
+          title: candidates.t('settings.title'),
+          offHint: candidates.t('settings.enabledHint'),
+          labelOn: candidates.t('settings.on'),
+          labelOff: candidates.t('settings.off'),
+          notWritable: candidates.t('settings.notWritable'),
+          saveFailed: error => format(candidates.t('settings.saveFailed'), { error }),
+          body: h(candidates.Settings, { getForm: () => form, t: candidates.t }),
+        },
+        {
+          key: 'history',
+          on: historyOn,
+          title: history.t('settings.title'),
+          offHint: history.t('settings.enabledHint'),
+          labelOn: history.t('settings.on'),
+          labelOff: history.t('settings.off'),
+          notWritable: history.t('settings.notWritable'),
+          saveFailed: error => format(history.t('settings.saveFailed'), { error }),
+          body: h(history.Settings, { getForm: () => form, t: history.t }),
+        },
+      ]
+
+      /** 切换某个功能的全局开关；失败时只在它自己的板块头里报错。 */
+      const toggle = (block) => {
+        if (!writable || pending !== null) return
+        setPending(block.key)
+        setFailure(null)
+        Promise.resolve(writeSection(form, block.key, { enabled: !block.on }))
+          .then((accepted) => {
+            if (accepted === false) throw new Error(block.notWritable)
+          })
+          .catch((error) => setFailure({ key: block.key, message: block.saveFailed(error?.message ?? String(error)) }))
+          .finally(() => setPending(null))
       }
 
-      // 顶层设置页与内置各页同一注册方式：导航里出现「输入历史」。
-      ctx.slots.inject('settings.section', () => ctx.slots.register({
-        name: 'settings.section',
-        id: 'oh-my-dsh.history',
-        order: 45,
-        locale: HISTORY_NS,
-        label: () => fallback('settings.title'),
-        inject: () => ({ getForm: () => configFormOf(ctx) }),
-      }, HistorySettings))
-      ctx.slots.inject('settings.section.icon', () => ctx.slots.register({
-        name: 'settings.section.icon',
-        id: 'oh-my-dsh.history',
-        order: 45,
-      }, HistoryIcon))
+      return h('section', { className: 'omd-page', 'data-oh-my-dsh-settings': true },
+        h('style', null, STYLE),
+        h('h2', { className: 'omd-pageTitle' }, t('title')),
+        h('p', { className: 'omd-pageIntro' }, t('intro')),
+        writable ? null : h('p', { className: 'omd-setMsg omd-setNote' }, t('readOnly')),
+        blocks.map((block) => {
+          const busy = pending === block.key
+          return h('div', {
+            key: block.key,
+            className: 'omd-block',
+            'data-feature': block.key,
+            'data-open': block.on ? 'true' : 'false',
+          },
+            h('div', { className: 'omd-blockHead' },
+              h('div', { className: 'omd-blockText' },
+                h('div', { className: 'omd-blockTitle' }, block.title),
+                block.on ? null : h('div', { className: 'omd-blockHint' }, block.offHint),
+                failure?.key === block.key
+                  ? h('div', { className: 'omd-blockError', role: 'alert' }, failure.message)
+                  : null),
+              h(CapsuleSwitch, {
+                on: block.on,
+                disabled: !writable || pending !== null,
+                busy,
+                label: block.on ? block.labelOn : block.labelOff,
+                ariaLabel: block.title,
+                onClick: () => toggle(block),
+              })),
+            h('div', {
+              className: 'omd-blockBody',
+              ...(block.on ? {} : { inert: '', 'aria-hidden': 'true' }),
+            },
+              h('div', { className: 'omd-blockClip' },
+                h('div', { className: 'omd-blockContent' }, block.body))),
+          )
+        }),
+      )
     }
 
     //#region 合并后的注册
     /**
-     * 三个功能各自的界面注册。
+     * 三个功能各自的界面注册，最后合成唯一一页设置。
      * @param ctx 已激活 `remote.ohMyDsh` 的浏览器侧上下文。
      */
     function registerUi(ctx) {
-      registerPeakValley(ctx)
-      registerCandidates(ctx)
-      registerHistory(ctx)
+      const peak = registerPeakValley(ctx)
+      const candidates = registerCandidates(ctx)
+      const history = registerHistory(ctx)
+
+      ctx.effect(
+        () => ctx.locale.register(PAGE_NS, { zh: pageZh, en: pageEn }),
+        'oh-my-dsh: page dictionaries',
+      )
+      const t = ctx.locale.bind(PAGE_NS)
+
+      // 所有设置收在一页里，导航里只有一个「OhMyDSH」。
+      ctx.slots.inject('settings.section', () => ctx.slots.register({
+        name: 'settings.section',
+        id: 'oh-my-dsh',
+        order: 35,
+        label: () => t('title'),
+        locale: PAGE_NS,
+        inject: () => ({ getForm: () => configFormOf(ctx), peak, candidates, history, t }),
+      }, OhMyDshSettings))
+      ctx.slots.inject('settings.section.icon', () => ctx.slots.register({
+        name: 'settings.section.icon',
+        id: 'oh-my-dsh',
+        order: 35,
+      }, OhMyDshIcon))
     }
 
     /**

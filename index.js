@@ -46,11 +46,11 @@ export function apply(ctx, config) {
   peakValley.apply(ctx, sections.peakValley)
   registerService(ctx, { candidates: sections.candidates, history: sections.history })
 
-  // 本插件自带三页设置，关掉宿主按 schema 自动生成的那一份，避免两处编辑同一批字段。
+  // 本插件自带一页 OhMyDSH 设置，关掉宿主按 schema 自动生成的那一份，避免两处编辑同一批字段。
   ctx.inject(['settings'], child => {
     child.effect(
       () => child.settings.configure({ auto: false }, ctx.fiber),
-      'oh-my-dsh: own settings pages',
+      'oh-my-dsh: own settings page',
     )
   })
 }

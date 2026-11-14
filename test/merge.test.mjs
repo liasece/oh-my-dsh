@@ -6,7 +6,7 @@
  *   - 模块 id 与 inject 列表覆盖三个功能的需求；
  *   - 三个功能各自占的槽位 id、顺序与所属槽位；
  *   - 两个 Remote 方法挂在同一个 `ohMyDsh` 服务上；
- *   - 三份字典都注册了，设置页才会显示成中文；
+ *   - 四份字典都注册了，设置页才会显示成中文；
  *   - 功能开关真的能挡住行为（输入历史与提示词候选各一条）。
  */
 import assert from 'node:assert/strict'
@@ -153,7 +153,7 @@ test('合并后：一个模块、一次挂载、两个 Remote 方法', async () 
   assert.equal(spec.methods['ohMyDsh/history'].service, 'ohMyDsh')
 })
 
-test('合并后：三个功能各自的槽位与设置页都在', async () => {
+test('合并后：三个功能各自的槽位都在，设置合成一页', async () => {
   const exports = loadClient()
   const { slots, dictionaries } = await applyClient(exports)
 
@@ -165,13 +165,14 @@ test('合并后：三个功能各自的槽位与设置页都在', async () => {
   assert.ok(right !== undefined, '输入框右侧应有峰谷动态开关')
 
   const pages = [...slots.values()].filter((entry) => entry.options.name === 'settings.section')
-  assert.deepEqual(pages.map((entry) => entry.options.id).sort(), ['oh-my-dsh.candidates', 'oh-my-dsh.history', 'oh-my-dsh.peak-valley'])
-  assert.deepEqual(pages.map((entry) => entry.options.order).sort((a, b) => a - b), [35, 40, 45])
+  assert.deepEqual(pages.map((entry) => entry.options.id), ['oh-my-dsh'], '所有设置收在唯一一页里')
+  assert.deepEqual(pages.map((entry) => entry.options.order), [35])
+  assert.equal(pages[0].options.label(), 'OhMyDSH', '导航名就是插件名')
 
   const icons = [...slots.values()].filter((entry) => entry.options.name === 'settings.section.icon')
-  assert.equal(icons.length, 3, '三页设置各有导航图标')
+  assert.deepEqual(icons.map((entry) => entry.options.id), ['oh-my-dsh'], '唯一一页配唯一一个导航图标')
 
-  for (const ns of ['oh-my-dsh.peak-valley', 'oh-my-dsh.candidates', 'oh-my-dsh.history']) {
+  for (const ns of ['oh-my-dsh.page', 'oh-my-dsh.peak-valley', 'oh-my-dsh.candidates', 'oh-my-dsh.history']) {
     assert.ok(dictionaries.has(ns), `应注册 ${ns} 的字典`)
     assert.ok(Object.keys(dictionaries.get(ns).zh).length > 0)
     assert.ok(Object.keys(dictionaries.get(ns).en).length > 0)
