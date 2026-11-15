@@ -16,7 +16,7 @@ DSH 插件：峰谷动态（按时段换模型路由）、提示词候选（回�
 | 面向用户的安装、配置字段与行为细节 | [README.md](README.md)（英文 [README.en.md](README.en.md)） |
 | 当前版本的改动 | [CHANGELOG.md](CHANGELOG.md) |
 
-文档与代码冲突时以代码和 `package.json` 为准，并先修文档；不确定的内容写进对应文档的「待确认」，不要补成结论。
+判断当前如何运行，查代码、配置和宿主接口；判断产品应该如何运行，回到用户原始要求和最新纠正。两者不一致时，先定位偏差，再改相应的文档或实现。不确定的内容写入对应文档的「待确认」。跨项目共用的判断与授权见[OPC 公司共同工作约定](/Users/jansen/src/liasece/OPC/organization/shared-guidance.md)。
 
 ## 工作约定
 
