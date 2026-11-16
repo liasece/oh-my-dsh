@@ -13,3 +13,5 @@
         history:
           enabled: true
           limit: 100
+        sessionCreation:
+          enabled: true

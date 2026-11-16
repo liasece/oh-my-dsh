@@ -216,8 +216,7 @@ test('开关：渲染出轨道、圆钮与齿轮（不是裸按钮）', async ()
   assert.doesNotMatch(markup, /pvm-chip/, '不该再有旧的胶囊类名')
 })
 
-test('一页设置里三个块各有一个胶囊功能开关，且是同一个控件', async () => {
-  // 三段共用一张表单：每个板块只读自己那一段。
+test('每个设置板块各有一个可访问的胶囊功能开关', async () => {
   const form = {
     getSnapshot: () => ({
       status: 'ready',
@@ -246,15 +245,16 @@ test('一页设置里三个块各有一个胶囊功能开关，且是同一个�
 
   const { component: Page, options } = registrations.bySlot.get('settings.section#oh-my-dsh')
   const markup = renderToStaticMarkup(React.createElement(Page, { ...options.inject(), t: (key) => key }))
-  assert.equal((markup.match(/class="omd-switch"/g) ?? []).length, 3, '三个功能各有一个开关')
-  assert.equal((markup.match(/role="switch"/g) ?? []).length, 3, '每个开关都声明为 switch')
-  assert.equal((markup.match(/omd-switchTrack/g) ?? []).length, 3, '每个开关都有胶囊轨道')
-  assert.equal((markup.match(/omd-switchThumb/g) ?? []).length, 3, '每个开关都有圆钮')
+  const features = ['peakValley', 'candidates', 'history', 'sessionCreation']
+  assert.equal((markup.match(/class="omd-switch"/g) ?? []).length, features.length, '各功能有独立开关')
+  assert.equal((markup.match(/role="switch"/g) ?? []).length, features.length, '每个开关都声明为 switch')
+  assert.equal((markup.match(/omd-switchTrack/g) ?? []).length, features.length, '每个开关都有胶囊轨道')
+  assert.equal((markup.match(/omd-switchThumb/g) ?? []).length, features.length, '每个开关都有圆钮')
   assert.doesNotMatch(markup, /pvm-button[^>]*role="switch"/, '功能开关不该还是普通按钮')
-  for (const key of ['peakValley', 'candidates', 'history']) {
+  for (const key of features) {
     assert.match(markup, new RegExp(`data-feature="${key}"`), `应有 ${key} 板块`)
   }
-  assert.equal((markup.match(/data-open="true"/g) ?? []).length, 3, '功能开着时板块展开')
+  assert.equal((markup.match(/data-open="true"/g) ?? []).length, features.length, '功能开着时板块展开')
 })
 
 test('功能关掉时板块折叠，板块头与开关仍在', async () => {

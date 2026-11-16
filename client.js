@@ -1,16 +1,6 @@
 /**
- * OhMyDSH 的浏览器半边：一个模块里装三个功能。
- *
- *   - 峰谷动态：输入框右侧的开关 + 一页设置（峰谷时段与两条路由）；
- *   - 提示词候选：输入框上方一行候选，Tab 采纳第一条 + 一页设置；
- *   - 输入历史：草稿为空时按 ↑ 召回上一条发送过的消息 + 一页设置。
- *
- * 合并的是交付方式，不是行为：三段代码各自沿用原插件的实现，只把配置的读写
- * 换到 `config.<段名>` 里，并各自加了一个 `enabled` 开关。开关关掉时该功能的
- * 界面立刻消失、宿主侧也空转，但插件不卸载，所以再打开同样立刻生效。
- *
- * 三个功能共用同一个 Typert 服务 `ohMyDsh`（两个方法：`candidates`／`history`），
- * 浏览器侧只挂载一次。
+ * 浏览器入口提供输入框控件和统一设置页。候选与历史共用一次 Typert 挂载。
+ * 创建会话由宿主的 agent 工具执行，浏览器只负责它的设置开关。
  */
 window.__ModuleLoader__.load({
   id: 'oh-my-dsh',
@@ -232,7 +222,7 @@ window.__ModuleLoader__.load({
      * 段里的每个字段都是 volatile 引用，逐个拆开；段缺席时给空对象，让各功能退回
      * 自己的默认值。
      * @param form 配置表单（可能是 undefined）。
-     * @param key 段名：`peakValley`／`candidates`／`history`。
+     * @param key 配置段名。
      */
     function readSection(form, key) {
       const raw = form?.getSnapshot?.()?.value?.[key]
@@ -2400,13 +2390,25 @@ window.__ModuleLoader__.load({
     const PAGE_NS = 'oh-my-dsh.page'
     const pageZh = {
       title: 'OhMyDSH',
-      intro: '峰谷动态、提示词候选、输入历史三个功能共用这一页。关掉某个功能，它的设置会折叠收起；重新打开即恢复。',
+      intro: '各项功能可以单独开启或关闭，设置即时生效。',
       readOnly: '当前部署没有开放配置写入，这里只显示当前值。',
+      sessionCreationTitle: '会话创建',
+      sessionCreationDescription: '你可以让 agent 新开一个会话并交给它第一条任务。打开侧栏里的新会话即可继续对话。',
+      sessionCreationOff: '已关闭会话创建。已有会话仍可继续使用。',
+      on: '已开启',
+      off: '已关闭',
+      saveFailed: '保存失败：{error}',
     }
     const pageEn = {
       title: 'OhMyDSH',
-      intro: 'Peak/Valley, prompt candidates, and input history share this page. Turning a feature off folds its settings away; turning it back on restores them.',
+      intro: 'Turn each feature on or off. Changes apply immediately.',
       readOnly: 'This deployment exposes no configuration writes; current values are read-only here.',
+      sessionCreationTitle: 'Session creation',
+      sessionCreationDescription: 'Ask your agent to start a separate conversation with a task. Open the new conversation in the sidebar to continue.',
+      sessionCreationOff: 'Session creation is off. You can still use existing conversations.',
+      on: 'On',
+      off: 'Off',
+      saveFailed: 'Could not save ({error})',
     }
 
     /** 设置导航图标：一峰一谷加一点火花，沿用插件的品牌形状。 */
@@ -2424,7 +2426,7 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * 唯一的设置页：三个功能各占一个板块。
+     * 每项功能在同一页设置里占一个板块。
      *
      * 板块头就是功能开关；功能关掉时正文折叠（开关仍留在头上，随时能再打开）。
      * 正文保持挂载、用 grid 行高做过渡，所以收起再展开不会丢草稿。
@@ -2436,6 +2438,7 @@ window.__ModuleLoader__.load({
       const peakOn = useSectionEnabled(form, 'peakValley')
       const candidatesOn = useSectionEnabled(form, 'candidates')
       const historyOn = useSectionEnabled(form, 'history')
+      const creationOn = useSectionEnabled(form, 'sessionCreation')
       const [pending, setPending] = React.useState(null)
       const [failure, setFailure] = React.useState(null)
 
@@ -2472,6 +2475,17 @@ window.__ModuleLoader__.load({
           notWritable: history.t('settings.notWritable'),
           saveFailed: error => format(history.t('settings.saveFailed'), { error }),
           body: h(history.Settings, { getForm: () => form, t: history.t }),
+        },
+        {
+          key: 'sessionCreation',
+          on: creationOn,
+          title: t('sessionCreationTitle'),
+          offHint: t('sessionCreationOff'),
+          labelOn: t('on'),
+          labelOff: t('off'),
+          notWritable: t('readOnly'),
+          saveFailed: error => format(t('saveFailed'), { error }),
+          body: h('p', { className: 'omd-setIntro' }, t('sessionCreationDescription')),
         },
       ]
 

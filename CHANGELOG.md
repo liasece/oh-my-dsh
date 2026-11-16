@@ -1,5 +1,9 @@
 # 变更记录
 
+## 未发布
+
+- 新增 `create_session`。用户可以让 agent 在 DSH 侧栏创建独立会话并发送首条任务。默认沿用当前项目，可指定其他已有项目。设置页新增「会话创建」开关。
+
 ## 0.1.0
 
 - 合并三个插件为一个：`dsh-peak-valley-model` v0.20.0、`dsh-prompt-candidates` v0.3.1、`dsh-prompt-history` v0.1.0。

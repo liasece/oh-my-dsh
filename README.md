@@ -1,14 +1,15 @@
 # OhMyDSH
 
-一个 DSH 插件，装齐三样用顺手的东西：**峰谷动态**（按时段自动换模型路由）、**提示词候选**（回合结束后给几条下一步可点的建议）、**输入历史**（空草稿时按 ↑ 召回你自己发过的上一条消息）。
+OhMyDSH 提供峰谷模型路由、提示词候选、输入历史和会话创建。你可以在 DSH 里直接让 agent 开一个新会话，把任务交过去，再从侧栏接着聊。
 
-三样原来各自是一个插件（`dsh-peak-valley-model`、`dsh-prompt-candidates`、`dsh-prompt-history`）。合并后仍然是一个包、一次挂载；所有设置收进唯一一页 **OhMyDSH**，三个功能各占一个板块，关掉的功能板块会自动折叠。
+所有功能共用一个插件包和一页 **OhMyDSH** 设置，各有独立开关。
 
 | 功能 | 做什么 | 界面位置 | 开关 |
 | --- | --- | --- | --- |
 | 峰谷动态 | 在配置的时段里把会话的**模型位**换成时段路由，时段外用另一条 | 输入框右侧的开关；设置 → OhMyDSH → 峰谷动态 | 输入框开关（按会话）+ 板块头的胶囊开关 |
 | 提示词候选 | 回合结束后用当前模型生成几条候选，点一下填进输入框 | 输入框上方候选条；设置 → OhMyDSH → 提示词候选 | 板块头的胶囊开关 |
 | 输入历史 | 草稿为空时按 ↑ 逐条往回翻自己发过的消息，↓ 往前翻；Esc 收起，Enter 发送 | 无可见界面（纯键盘）；设置 → OhMyDSH → 输入历史 | 板块头的胶囊开关 |
+| 会话创建 | agent 按要求新开一个会话，并把首条任务交给它 | 对话中的 `create_session` 工具，结果出现在 DSH 侧栏 | 设置 → OhMyDSH → 会话创建 |
 
 ## 安装
 
@@ -26,7 +27,7 @@
 
 ## 配置
 
-配置写在 profile 的 `cordis.patch.yml` 里，三段各管一个功能。设置页能改的字段都是 `volatile`，写完即时生效、不需要重启。
+配置写在 profile 的 `cordis.patch.yml` 里，每段各管一个功能。设置页能改的字段都是 `volatile`，写完即时生效。
 
 ```yaml
 - id: oh-my-dsh
@@ -49,6 +50,8 @@
     history:
       enabled: true
       limit: 100
+    sessionCreation:
+      enabled: true
 ```
 
 ### `peakValley`
@@ -83,6 +86,10 @@
 | `enabled` | `true` | 关掉后 ↑／↓ 不再被插件接管，编辑器恢复原生行为。 |
 | `limit` | `100` | 一次最多往回翻多少条，1–200。 |
 
+### `sessionCreation`
+
+`enabled` 默认是 `true`。关掉后，agent 无法继续创建会话，已经创建的会话仍能照常使用。
+
 ## 从三个旧插件迁移
 
 字段是一一对应的，只是多套了一层段名：峰谷动态的 `enabled`/`sessions`/`peakWindows`/`offPeakRoute`/`timeZone` 前面加 `peakValley:`，提示词候选的字段前面加 `candidates:`，输入历史加 `history:`。
@@ -97,6 +104,16 @@
 `lastToggle` 一定要一起搬：它记着「最近一次动作是开还是关」，决定新会话的默认状态。丢掉它，新会话会退回「关」。
 
 ## 行为细节
+
+### 会话创建
+
+在普通会话里说「新开一个叫『文档审阅』的会话，让它检查 README 的安装步骤」。新会话会在当前项目的侧栏出现，独立处理第一条任务。你可以继续当前对话，也可以打开新会话接着问。创建结果包含标题、`sessionId` 和首条任务是否已交付的 `started`。
+
+侧栏按工作区分组时，在目标项目下找新会话。「最近更新」先显示置顶会话，普通会话按创建或最近一次用户发言的时间排序。工作区保留原有顺序。要跨项目按时间查看，可在侧栏「视图选项」里选「单列表」和「最近更新」。使用「手动排序」时，后台新建的普通会话排在已有手动顺序之后。
+
+`create_session` 接受必填的 `prompt`、可选的 `title` 和 `workspace`。缺省标题取自首条任务。默认沿用发起会话的项目、工作目录、模型、agent 预设和权限。用户明确指定其他已有项目时，按项目名、完整路径或 ID 选择，使用该项目的根目录。移到当前沙箱可写范围以外的项目并获得写权限，需要 DSH 批准。
+
+只有普通会话里由用户本人发起的回合能创建新会话。子代理、计划模式和访客回合不能启动这个操作。新会话从独立的对话历史开始，第一条消息注明来自发起 agent。临时分工仍可用 DSH 内置的子代理。
 
 ### 峰谷动态
 
@@ -124,7 +141,7 @@
 - 输入历史召回的是线上文本，不是原始编辑态：`@` 引用的 chip、粘贴的图片都找不回来。
 - 提示词候选和输入历史都是只读的旁观者；它们不会改会话内容，也不会替你发消息。输入历史只读会话日志，不请求模型、不消耗模型额度；提示词候选每回合结束会请求一次模型，不需要时可在 OhMyDSH 页关掉。
 - 峰谷动态依赖「模型位」这条路：如果某个 provider 的模型不在 `modelCatalog` 里，设置页会保留配置值但无法选中它。
-- 三个功能都只在 DSH Desktop / Web 的客户端槽位里工作，TUI 下没有这些界面。
+- 输入框控件和设置页使用 DSH Desktop / Web 的客户端槽位。会话创建工具在宿主执行。
 
 ## 开发
 
@@ -135,23 +152,24 @@ npm test                   # node --test test/*.test.mjs
 
 | 文件 | 作用 |
 | --- | --- |
-| `index.js` | Host 入口：`inject`、`Config`（三段合并）、`apply` |
+| `index.js` | Host 入口，装配各功能及其配置 |
 | `lib/peak-valley/index.js` | 峰谷动态的宿主半边：配置摊平、路由对齐、手动改动记账 |
 | `lib/peak-valley/period.js` | 时段解析与「现在在哪一档」 |
 | `lib/peak-valley/state.js` | `routeAt(cfg, now)`：唯一的时段决策点 |
 | `lib/candidates/index.js` | 提示词候选的宿主半边：生成、去重、缓存 |
 | `lib/candidates/candidates.js` | 纯函数：重建请求消息、解析输出 |
 | `lib/history/index.js` | 输入历史的宿主半边：读会话文本 |
+| `lib/session-creation/` | 注册 agent 工具，创建普通会话并投递首条任务 |
 | `lib/remote.js` / `lib/typert.js` | Typert Remote 的 spec 与 manifest |
 | `lib/service.js` | 服务 `ohMyDsh` 的两个方法 |
-| `client.js` | 浏览器半边：三个功能的槽位与合并后的 OhMyDSH 设置页 |
+| `client.js` | 浏览器半边，提供输入框槽位与 OhMyDSH 设置页 |
 | `cordis.patch.yml` | bundle 的安装行 |
 
 测试分三档：`period`/`state`/`history`/`candidates` 是纯函数，`peak-valley-host` 用替身跑宿主逻辑，`peak-valley-client`/`peak-valley-interaction`/`merge` 用 jsdom + React 18 真的渲染和点击。
 
 ## 文档
 
-- [产品文档](docs/product.md)：三个功能为谁解决什么、能力边界、常见误解与产品历史。
+- [产品文档](docs/product.md)：各项功能的使用场景、能力边界与产品历史。
 - [开发文档](docs/development.md)：Host / 浏览器两半边的分层、改动落点、宿主 API 约定与测试。
 - [运维文档](docs/operations.md)：安装卸载、版本兼容、设置迁移、发布回滚与排障。
 - [AGENTS.md](AGENTS.md)：给 agent 的文档入口与工作约定。

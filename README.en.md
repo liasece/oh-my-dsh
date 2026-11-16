@@ -1,18 +1,20 @@
 # OhMyDSH
 
-One DSH plugin that bundles three conveniences:
+OhMyDSH brings four features to DSH.
 
 - **Peak/valley routing** — swap the session's model seat to a per-window route inside configured hours, and to an off-peak route outside them.
 - **Prompt candidates** — after a turn ends, ask the current model for a few one-click next prompts.
 - **Input history** — with an empty draft, press ↑ to walk back through the messages you already sent, ↓ to walk forward.
+- **Session creation** — ask your agent to start a separate conversation with a task. Open it from the sidebar to continue.
 
-They used to be three separate plugins (`dsh-peak-valley-model`, `dsh-prompt-candidates`, `dsh-prompt-history`). The merge keeps one package and one mount; all settings live on a single OhMyDSH page, one section per feature, each with its own on/off switch.
+All settings live on one OhMyDSH page, with a switch for each feature.
 
 | Feature | What it does | Where | Switch |
 | --- | --- | --- | --- |
 | Peak/valley | Swaps the model seat per time window | Chip on the right of the composer; Settings → OhMyDSH → Peak/valley | Chip (per session) + the section's capsule switch |
 | Prompt candidates | Suggests next prompts after a turn | Bar above the composer; Settings → OhMyDSH → Prompt candidates | The section's capsule switch |
 | Input history | ↑ / ↓ recall sent messages; Esc dismisses, Enter sends | Keyboard only; Settings → OhMyDSH → Input history | The section's capsule switch |
+| Session creation | Starts a user-visible conversation with an initial task | The `create_session` agent tool and the DSH sidebar | Settings → OhMyDSH → Session creation |
 
 ## Install
 
@@ -28,7 +30,7 @@ A newly installed bundle is loaded on the next DSH start; the running app cannot
 
 ## Configuration
 
-Three sections in the profile's `cordis.patch.yml`, one per feature. The fields exposed in Settings are `volatile` (writable live); the rest need a plugin reload.
+Each feature has a section in the profile's `cordis.patch.yml`. Fields exposed in Settings are `volatile` and apply immediately.
 
 ```yaml
 - id: oh-my-dsh
@@ -49,6 +51,8 @@ Three sections in the profile's `cordis.patch.yml`, one per feature. The fields 
     history:
       enabled: true
       limit: 100
+    sessionCreation:
+      enabled: true
 ```
 
 | Section | Fields |
@@ -56,6 +60,17 @@ Three sections in the profile's `cordis.patch.yml`, one per feature. The fields 
 | `peakValley` | `enabled`, `timeZone`, `peakWindows[]`, `offPeakRoute`, `sessions`, `lastToggle` |
 | `candidates` | `enabled`, `maxSuggestions` (1–5), `historyMessages` (1–40), `maxOutputTokens`, `timeoutMs`, `provider`, `model`, `debug` |
 | `history` | `enabled`, `limit` (1–200, default 100) |
+| `sessionCreation` | `enabled` (default `true`) |
+
+## Starting a separate conversation
+
+Ask “Open a new conversation called Documentation review and have it check the README installation steps.” The new conversation starts in the current project with its own history. Its first message identifies the sending agent. You can continue either conversation independently.
+
+In a grouped sidebar, look under the destination workspace. **Last updated** shows pinned conversations first and orders ordinary conversations by creation time or the most recent user prompt. The workspaces keep their saved order. To see recent conversations across projects, choose **In one list** and **Last updated** in the sidebar view options. In **Manual** order, background creations follow the conversations you have already arranged.
+
+The `create_session` tool takes a required `prompt` and an optional `title` and `workspace`. The title defaults to the opening words of the prompt. The conversation inherits the current directory, model, agent preset and permissions. When the user names another registered project, the tool accepts its exact name, path or ID and starts at that project's root. Moving write access outside the current sandbox requires DSH approval.
+
+Creation requires an ordinary conversation and a turn initiated by its user. Subagents, plan mode and guest turns cannot start a conversation. The result includes the title, `sessionId` and whether the initial task was submitted (`started`). Turning the feature off stops new creations.
 
 ## Migrating from the three plugins
 

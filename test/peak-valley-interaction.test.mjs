@@ -631,9 +631,9 @@ test('设置页：写入落地前的配置推送不会把刚改的值冲掉', as
   await ui.unmount()
 })
 
-/** 三个功能段都在、写后会推送的表单替身，用来验证板块的展开/收起。 */
-function fakePageForm({ enabled = { peakValley: true, candidates: true, history: true } } = {}) {
-  const state = { ...enabled }
+/** 各功能共用的可写表单，写入后通知订阅者。 */
+function fakePageForm({ enabled } = {}) {
+  const state = { peakValley: true, candidates: true, history: true, sessionCreation: true, ...enabled }
   const listeners = new Set()
   const writes = []
   const snapshot = () => ({
@@ -654,6 +654,7 @@ function fakePageForm({ enabled = { peakValley: true, candidates: true, history:
         historyMessages: { get: () => 12 },
       },
       history: { enabled: { get: () => state.history }, limit: { get: () => 100 } },
+      sessionCreation: { enabled: { get: () => state.sessionCreation } },
     },
   })
   return {
@@ -669,7 +670,7 @@ function fakePageForm({ enabled = { peakValley: true, candidates: true, history:
         if (op.op !== 'set') continue
         const [section, field] = op.path
         if (field !== 'enabled') continue
-        if (section === 'peakValley' || section === 'candidates' || section === 'history') state[section] = op.value
+        if (Object.hasOwn(state, section)) state[section] = op.value
       }
       for (const listener of listeners) listener()
       return true
@@ -700,6 +701,11 @@ test('设置页：关掉一个功能时收起它的板块，再点开关就展�
   assert.deepEqual(form.writes[0], [{ op: 'set', path: ['candidates', 'enabled'], value: true }])
   assert.equal(block('candidates').getAttribute('data-open'), 'true', '打开后板块展开')
   assert.equal(body('candidates').getAttribute('aria-hidden'), null, '展开后内容重新可读')
+
+  await ui.act(async () => { block('sessionCreation').querySelector('button.omd-switch').click() })
+  assert.deepEqual(form.writes.at(-1), [{ op: 'set', path: ['sessionCreation', 'enabled'], value: false }])
+  assert.equal(block('sessionCreation').getAttribute('data-open'), 'false')
+  assert.equal(block('candidates').getAttribute('data-open'), 'true')
 
   await ui.unmount()
 })

@@ -6,14 +6,14 @@
 
 一个插件包，同时跑在两个运行时里：
 
-- **Host 半边**：`index.js` + `lib/`，在 Node 里执行，负责配置解析、路由对齐、候选生成、历史读取，通过 Typert Remote 暴露 `ohMyDsh` 服务（`candidates`、`history` 两个方法）。
+- **Host 半边**在 Node 中执行，负责路由对齐、候选生成、历史读取和会话创建。浏览器通过 Typert Remote 访问 `ohMyDsh` 的 `candidates`、`history` 方法。模型通过宿主工具注册表调用 `create_session`。
 - **浏览器半边**：`client.js` 单文件，由 `window.__ModuleLoader__.load` 加载，注册输入框槽位、快捷键观察与唯一一页设置。它不能 `import` 仓库里的 host 文件，只能用加载器给的 `require` 取 `react`、`react-dom`、`zod` 等宿主依赖。
 
 ## 目录职责
 
 | 路径 | 职责 |
 | --- | --- |
-| `index.js` | Host 入口：`inject`、三段合并的 `Config`、`apply`（峰谷 + 服务 + 关掉宿主自动设置页）|
+| `index.js` | Host 入口，装配各功能、配置 schema 和设置页 |
 | `lib/peak-valley/index.js` | 峰谷宿主逻辑：配置摊平、15 秒巡检、轮次边界、手动改模型识别、状态落库 |
 | `lib/peak-valley/period.js` | `HH:MM` 解析、时区换算、跨零点与周末判定 |
 | `lib/peak-valley/state.js` | `routeAt` / `periodInfo`：唯一的时段决策点 |
@@ -21,6 +21,7 @@
 | `lib/candidates/candidates.js` | 纯函数：重建请求消息、拼指令、解析输出 |
 | `lib/history/index.js` | 读会话日志，按 `limit` 取用户消息 |
 | `lib/history/history.js` | 纯函数：哪些消息算「用户亲手发的」 |
+| `lib/session-creation/index.js` / `tool.js` | 创建会话的宿主能力装配、工具准入、项目选择和首条消息投递 |
 | `lib/remote.js` / `lib/typert.js` / `lib/service.js` | `ohMyDsh/*` 的 spec、宿主清单与服务注册 |
 | `lib/shipped.js` | 从 DSH 安装目录解析 `@deepseek-ai/*` 与 `zod`，避免 link 安装时缺依赖 |
 | `client.js` | 浏览器半边：峰谷开关、候选条、历史按键、合并设置页、`registerUi` |
@@ -43,6 +44,8 @@
 - 峰谷动态只能走 `sessionController.selectModel`，且只在轮次之间写：`preStep` 已按 `model.current()` 定死这一步的路由，轮次中途改会把别的路由的 `tool_use` 重放过去（thinking 签名不可移植）。换路由时不带 `reasoningEffort`。
 - 用户手动换模型视为收回控制权：只关掉该会话的开关并记 `lastToggle`，不波及其他会话。
 - 子代理会话不对齐；候选与历史都不写会话日志。
+- `create_session` 通过 `tools.register` 交给 agent。宿主投影记录当前回合的直接用户来源，在实际执行时检查。普通会话工厂 `agents.create` 的 `setup` 在 agent 发布前绑定发起者正在使用的预设版本，写入沙箱、审批、模型和标题。项目归属交给 `workspace.attachSession`，临时工作目录交给 `workingDirectory`。首条任务通过 `followup` 以 `agent-message` 投递，发送者和输入历史都能正确区分这条消息。
+- 会话 ID 由宿主插件生成。工具结果区分建好会话和首条任务投递成功，同一步重放同一调用可取得原结果。
 - 宿主版本要求与依赖解析方式见[运维文档](operations.md#运行形态与环境)。
 
 ## 技术选型与取舍
@@ -57,11 +60,11 @@
 
 ```bash
 npm install   # devDependencies：react / react-dom / jsdom / zod / schemastery / typert-protocol
-npm test      # node --test --test-force-exit test/*.test.mjs，2026-11-14 为 95 个用例
-npm run check # node --check 逐个检查 9 个入口文件
+npm test      # node --test --test-force-exit test/*.test.mjs
+npm run check # node --check 检查宿主和浏览器入口
 ```
 
-三档测试：`period`/`state`/`history`/`candidates` 是纯函数；`peak-valley-host` 用替身跑宿主对齐；`peak-valley-client`/`peak-valley-interaction`/`merge` 在 jsdom 里真的渲染与点击。仓库没有 lint、类型检查或 CI 配置（是否要加见「待确认」）。
+纯函数用例覆盖时段、状态、候选和历史。`peak-valley-host` 和 `session-creation` 验证宿主行为，后者覆盖任务归属、首条消息、权限、取消和重试。`peak-valley-client`、`peak-valley-interaction`、`merge` 在 jsdom 中验证界面。仓库没有 lint、类型检查或 CI 配置。
 
 ## 常见改错方式
 
@@ -81,7 +84,6 @@ npm run check # node --check 逐个检查 9 个入口文件
 
 - `client.js` 已 2593 行（2026-11-14），是否按功能拆文件？当前受「浏览器半边单文件加载」限制，拆分需要加载器支持。
 - 是否引入 lint、类型检查与 CI；目前门禁只有测试与 `node --check`。
-- `locale/*.json` 的描述仍写「每个功能在自己的设置页」、`index.js` 头注释仍写「三个功能的设置页各占一页」，落后于已提交的单页实现（`97cd3dd`）；它们是插件资源与代码注释，尚未同步。
 
 ## 不写在本文档的内容
 

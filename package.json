@@ -2,7 +2,7 @@
   "name": "oh-my-dsh",
   "version": "0.1.0",
   "type": "module",
-  "description": "把峰谷动态、提示词候选、输入历史三个功能合到一个插件里，每个功能各有开关，设置沿用原来的字段。",
+  "description": "DSH 的峰谷模型路由、提示词候选、输入历史和 agent 会话创建，共用一页设置。",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -10,7 +10,8 @@
     "oh-my-dsh",
     "peak-valley",
     "prompt-candidates",
-    "prompt-history"
+    "prompt-history",
+    "session-creation"
   ],
   "author": "liasece",
   "license": "MIT",
@@ -59,7 +60,7 @@
   },
   "scripts": {
     "test": "node --test --test-force-exit test/*.test.mjs",
-    "check": "node --check index.js && node --check client.js && node --check lib/shipped.js && node --check lib/remote.js && node --check lib/typert.js && node --check lib/service.js && node --check lib/peak-valley/index.js && node --check lib/candidates/index.js && node --check lib/history/index.js"
+    "check": "node --check index.js && node --check client.js && node --check lib/shipped.js && node --check lib/remote.js && node --check lib/typert.js && node --check lib/service.js && node --check lib/peak-valley/index.js && node --check lib/candidates/index.js && node --check lib/history/index.js && node --check lib/session-creation/index.js && node --check lib/session-creation/tool.js"
   },
   "peerDependencies": {
     "@deepseek-ai/schemastery": "~3.18.5"
