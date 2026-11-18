@@ -53,6 +53,19 @@ test('条数从最新一条往回数，结果仍按时间顺序', () => {
   assert.deepEqual(recentUserTexts(messages, 2), ['三', '四'])
 })
 
+test('助手与框架注入的消息不占条数', () => {
+  const messages = [
+    user('最早'),
+    assistant('答一'),
+    user('第二'),
+    user('运行时上下文', 'runtime-context'),
+    user('子会话的委托', 'agent-message'),
+    assistant('答二'),
+  ]
+  assert.deepEqual(recentUserTexts(messages, 2), ['最早', '第二'])
+  assert.deepEqual(recentUserTexts(messages, 1), ['第二'])
+})
+
 test('条数夹到 [1, MAX_LIMIT]，坏值退回默认值', () => {
   assert.equal(normalizeLimit(undefined), 50)
   assert.equal(normalizeLimit(0), 50)

@@ -126,7 +126,7 @@ window.__ModuleLoader__.load({
       type: 'object',
       properties: {
         sessionId: { type: 'string', description: '要读取历史的会话。' },
-        limit: { type: 'number', description: '最多往回翻多少条，取值 1–200。' },
+        limit: { type: 'number', description: '最多往回翻多少条自己发过的消息，取值 1–200。' },
       },
       required: ['sessionId'],
     }
@@ -2018,7 +2018,7 @@ window.__ModuleLoader__.load({
       'settings.on': '已开启',
       'settings.off': '已关闭',
       'settings.limit': '一次最多往回翻几条',
-      'settings.limitHint': '取值 1–200，超过这个条数的更早消息不会被召回。',
+      'settings.limitHint': '取值 1–200；只数你自己发过的消息，助手、子 Agent 与框架注入的内容不占条数。',
       'settings.saved': '已保存',
       'settings.saveFailed': '保存失败：{error}',
       'settings.invalidNumber': '请输入 1 到 200 之间的整数。',
@@ -2033,7 +2033,7 @@ window.__ModuleLoader__.load({
       'settings.on': 'On',
       'settings.off': 'Off',
       'settings.limit': 'Messages recalled at most',
-      'settings.limitHint': 'From 1 to 200; older messages beyond this count are not recalled.',
+      'settings.limitHint': 'From 1 to 200; only messages you sent count — assistant, sub-agent, and framework messages never use up the quota.',
       'settings.saved': 'Saved',
       'settings.saveFailed': 'Could not save: {error}',
       'settings.invalidNumber': 'Enter a whole number from 1 to 200.',
